@@ -11,8 +11,11 @@ import java.util.Random;
 /**
  * Responsible for fetching or generating sales data.
  * This class demonstrates the Single Responsibility Principle by focusing only on data retrieval.
+ *
+ * It now implements DataFetcherInterface as part of the Open/Closed Principle implementation,
+ * allowing for different data fetching strategies without modifying existing code.
  */
-public class DataFetcher {
+public class DataFetcher implements DataFetcherInterface {
     
     /**
      * Fetches sales data for the specified month and year.
