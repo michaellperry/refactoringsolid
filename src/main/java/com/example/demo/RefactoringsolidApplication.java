@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Bean;
 import java.time.LocalDate;
 
 /**
- * Main application class that demonstrates the non-SOLID implementation
- * of the report generation system.
+ * Main application class that demonstrates the implementation
+ * of the report generation system after applying the Single Responsibility Principle.
  */
 @SpringBootApplication
 public class RefactoringsolidApplication {
@@ -21,13 +21,13 @@ public class RefactoringsolidApplication {
 
 	/**
 	 * Creates a CommandLineRunner bean that will run when the application starts.
-	 * This demonstrates the functionality of our non-SOLID ReportService.
+	 * This demonstrates the functionality of our ReportService after applying the Single Responsibility Principle.
 	 */
 	@Bean
 	public CommandLineRunner demoReportService() {
 		return args -> {
 			System.out.println("Starting Report Generation Demo...");
-			System.out.println("This demonstrates a non-SOLID implementation with multiple responsibilities in one class.");
+			System.out.println("This demonstrates an implementation after applying the Single Responsibility Principle.");
 			
 			// Create a new ReportService
 			ReportService reportService = new ReportService();
@@ -42,11 +42,15 @@ public class RefactoringsolidApplication {
 			reportService.generateMonthlyReport(currentMonth, currentYear, "manager@example.com");
 			
 			System.out.println("\nReport generation completed.");
-			System.out.println("\nIssues with this non-SOLID implementation:");
-			System.out.println("1. Single Responsibility Principle violation: ReportService handles data access, business logic, formatting, and email sending");
-			System.out.println("2. Open/Closed Principle violation: Adding new report formats or delivery methods requires modifying the existing class");
-			System.out.println("3. Dependency Inversion Principle violation: High-level modules depend on low-level modules directly");
-			System.out.println("4. Tight coupling between components makes the code hard to test and maintain");
+			System.out.println("\nImprovements after applying the Single Responsibility Principle:");
+			System.out.println("1. Each class has a single responsibility and a single reason to change");
+			System.out.println("2. DataFetcher is responsible only for retrieving data");
+			System.out.println("3. ReportFormatter is responsible only for formatting reports");
+			System.out.println("4. EmailSender is responsible only for sending emails");
+			System.out.println("5. ReportService now orchestrates these specialized classes");
+			System.out.println("\nRemaining issues to address in future refactorings:");
+			System.out.println("1. Open/Closed Principle: Classes should be open for extension but closed for modification");
+			System.out.println("2. Dependency Inversion: High-level modules should not depend on low-level modules directly");
 		};
 	}
 }

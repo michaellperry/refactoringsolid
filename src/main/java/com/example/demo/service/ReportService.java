@@ -2,75 +2,52 @@ package com.example.demo.service;
 
 import com.example.demo.model.SalesData;
 
-import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * This class intentionally violates SOLID principles by handling multiple responsibilities:
- * - Data fetching
- * - Business logic calculations
- * - Report formatting
- * - Email sending
+ * This class has been refactored to follow the Single Responsibility Principle.
+ * It now delegates specific responsibilities to specialized classes:
+ * - DataFetcher: Handles data retrieval
+ * - ReportFormatter: Handles report formatting
+ * - EmailSender: Handles email delivery
+ * 
+ * This demonstrates the Single Responsibility Principle by ensuring each class
+ * has only one reason to change.
  */
 public class ReportService {
+    private final DataFetcher dataFetcher;
+    private final ReportFormatter reportFormatter;
+    private final EmailSender emailSender;
     private List<SalesData> salesData;
     
     /**
+     * Constructor that initializes the specialized service classes.
+     */
+    public ReportService() {
+        // Initialize the specialized service classes
+        this.dataFetcher = new DataFetcher();
+        this.reportFormatter = new ReportFormatter();
+        this.emailSender = new EmailSender();
+    }
+    
+    /**
      * Generates and sends a monthly sales report.
-     * This method handles the entire process from data fetching to email sending.
+     * This method now orchestrates the process by delegating to specialized classes.
      */
     public void generateMonthlyReport(int month, int year, String recipient) {
-        // Fetch data
-        fetchSalesData(month, year);
+        // Fetch data using DataFetcher
+        salesData = dataFetcher.fetchSalesData(month, year);
         
         // Calculate metrics
         double totalSales = calculateTotalSales();
         Map<String, Double> growthPercentages = calculateGrowthPercentages();
         
-        // Format report
-        String report = formatReportAsText(totalSales, growthPercentages);
+        // Format report using ReportFormatter
+        String report = reportFormatter.formatReportAsText(salesData, totalSales, growthPercentages);
         
-        // Send report
-        sendReportByEmail(report, recipient);
-    }
-    
-    /**
-     * Fetches sales data for the specified month and year.
-     * In a real application, this would fetch from a database.
-     * For this demo, it generates sample data.
-     */
-    private void fetchSalesData(int month, int year) {
-        // In a real app, this would fetch from a database
-        // For demo, generate sample sales data
-        salesData = new ArrayList<>();
-        
-        // Create a YearMonth object for the specified month and year
-        YearMonth yearMonth = YearMonth.of(year, month);
-        
-        // Get the number of days in the month
-        int daysInMonth = yearMonth.lengthOfMonth();
-        
-        // Generate random sales data for each day of the month
-        Random random = new Random(42); // Fixed seed for reproducibility
-        String[] categories = {"Electronics", "Clothing", "Food", "Books"};
-        
-        for (int day = 1; day <= daysInMonth; day++) {
-            for (String category : categories) {
-                // Generate a random amount between 100 and 1000
-                double amount = 100 + random.nextDouble() * 900;
-                
-                // Create a LocalDate for this day
-                LocalDate date = LocalDate.of(year, month, day);
-                
-                // Add to sales data
-                salesData.add(new SalesData(category, amount, date));
-            }
-        }
-        
-        System.out.println("Fetched " + salesData.size() + " sales records for " + 
-                           yearMonth.getMonth() + " " + year);
+        // Send report using EmailSender
+        emailSender.sendReportByEmail(report, recipient);
     }
     
     /**
@@ -115,66 +92,5 @@ public class ReportService {
         }
         
         return growthPercentages;
-    }
-    
-    /**
-     * Formats the report as text.
-     */
-    private String formatReportAsText(double totalSales, Map<String, Double> growthPercentages) {
-        if (salesData == null || salesData.isEmpty()) {
-            return "No sales data available for the specified period.";
-        }
-        
-        // Get the month and year from the first sales data entry
-        LocalDate firstDate = salesData.get(0).getDate();
-        String monthYear = firstDate.getMonth() + " " + firstDate.getYear();
-        
-        // Format the report as text
-        StringBuilder report = new StringBuilder();
-        report.append("Monthly Sales Report - ").append(monthYear).append("\n");
-        report.append("===========================================\n\n");
-        
-        // Add total sales
-        report.append(String.format("Total Sales: $%.2f\n\n", totalSales));
-        
-        // Add sales by category
-        report.append("Sales by Category:\n");
-        report.append("------------------\n");
-        
-        Map<String, Double> totalsByCategory = salesData.stream()
-                .collect(Collectors.groupingBy(
-                        SalesData::getProductCategory,
-                        Collectors.summingDouble(SalesData::getAmount)
-                ));
-        
-        for (Map.Entry<String, Double> entry : totalsByCategory.entrySet()) {
-            report.append(String.format("%-12s: $%.2f\n", entry.getKey(), entry.getValue()));
-        }
-        
-        report.append("\n");
-        
-        // Add growth percentages
-        report.append("Growth Percentages (compared to previous period):\n");
-        report.append("------------------------------------------------\n");
-        
-        for (Map.Entry<String, Double> entry : growthPercentages.entrySet()) {
-            report.append(String.format("%-12s: %+.2f%%\n", entry.getKey(), entry.getValue()));
-        }
-        
-        return report.toString();
-    }
-    
-    /**
-     * Sends the report by email.
-     * In a real application, this would send an actual email.
-     * For this demo, it prints to the console.
-     */
-    private void sendReportByEmail(String report, String recipient) {
-        // In a real app, this would send an email
-        // For demo, just print to console
-        System.out.println("\n===========================================");
-        System.out.println("Sending report to: " + recipient);
-        System.out.println("===========================================\n");
-        System.out.println(report);
     }
 }
