@@ -1,69 +1,46 @@
 package com.example.demo.service;
 
 import com.example.demo.model.SalesData;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * This class has been refactored to follow the Single Responsibility Principle,
- * the Open/Closed Principle, and now the Dependency Inversion Principle.
+ * This class demonstrates how the service would look WITHOUT applying
+ * the Dependency Inversion Principle (DIP).
  *
- * It delegates specific responsibilities to specialized interfaces:
- * - DataFetcherInterface: Handles data retrieval
- * - ReportFormatterInterface: Handles report formatting
- * - ReportSenderInterface: Handles report delivery
- *
- * This demonstrates the Dependency Inversion Principle by:
- * 1. High-level module (ReportService) depends on abstractions (interfaces)
- * 2. Low-level modules (implementations) also depend on the same abstractions
- * 3. Dependencies are injected by the Spring framework, not created internally
- * 4. Both high and low-level modules are decoupled from each other
+ * ISSUES WITH THIS APPROACH:
+ * 1. High-level module (ReportServiceWithoutDIP) directly depends on low-level modules
+ *    (concrete implementations like DataFetcher, ReportFormatter, EmailReportSender)
+ * 2. Direct instantiation creates tight coupling between classes
+ * 3. Makes testing difficult as we cannot easily substitute implementations
+ * 4. Changes to low-level modules may require changes to this class
+ * 5. Violates DIP: "High-level modules should not depend on low-level modules.
+ *    Both should depend on abstractions."
  */
-@Service
-public class ReportService {
-    private final DataFetcherInterface dataFetcher;
-    private final ReportFormatterInterface reportFormatter;
-    private final ReportSenderInterface reportSender;
+public class ReportServiceWithoutDIP {
+    // Direct instantiation of concrete classes - this violates DIP
+    private final DataFetcher dataFetcher = new DataFetcher();
+    private final ReportFormatter reportFormatter = new ReportFormatter();
+    private final EmailReportSender reportSender = new EmailReportSender();
     private List<SalesData> salesData;
     
     /**
-     * Constructor with @Autowired annotation for dependency injection.
-     * Spring will automatically inject the appropriate implementations.
-     *
-     * This demonstrates the Dependency Inversion Principle:
-     * - ReportService depends on abstractions (interfaces), not concrete implementations
-     * - Dependencies are provided from outside, not created internally
-     * - This allows for loose coupling and easier testing
-     */
-    @Autowired
-    public ReportService(
-            DataFetcherInterface dataFetcher,
-            ReportFormatterInterface reportFormatter,
-            ReportSenderInterface reportSender) {
-        this.dataFetcher = dataFetcher;
-        this.reportFormatter = reportFormatter;
-        this.reportSender = reportSender;
-    }
-    
-    /**
      * Generates and sends a monthly sales report.
-     * This method now orchestrates the process by delegating to specialized classes.
+     * This method is tightly coupled to specific implementations.
      */
     public void generateMonthlyReport(int month, int year, String recipient) {
-        // Fetch data using DataFetcherInterface
+        // Directly using concrete implementations
         salesData = dataFetcher.fetchSalesData(month, year);
         
         // Calculate metrics
         double totalSales = calculateTotalSales();
         Map<String, Double> growthPercentages = calculateGrowthPercentages();
         
-        // Format report using ReportFormatterInterface
+        // Using concrete implementation
         String report = reportFormatter.formatReport(salesData, totalSales, growthPercentages);
         
-        // Send report using ReportSenderInterface
+        // Using concrete implementation
         reportSender.sendReport(report, recipient);
     }
     
@@ -110,4 +87,20 @@ public class ReportService {
         
         return growthPercentages;
     }
+    
+    /**
+     * PROBLEMS WITH THIS DESIGN:
+     * 
+     * 1. Testability Issues:
+     *    - Cannot easily mock dependencies for unit testing
+     *    - Must test entire chain of dependencies
+     * 
+     * 2. Flexibility Issues:
+     *    - Cannot easily swap implementations
+     *    - Changes to dependencies may require changes to this class
+     * 
+     * 3. Maintainability Issues:
+     *    - Tight coupling increases complexity
+     *    - Changes ripple through the system
+     */
 }

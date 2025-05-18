@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.model.SalesData;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -11,7 +12,11 @@ import java.util.stream.Collectors;
  * A PDF implementation of the ReportFormatterInterface.
  * This class demonstrates the Open/Closed Principle by extending the system's functionality
  * without modifying existing code.
+ *
+ * The @Service annotation marks this as a Spring service component that can be
+ * automatically discovered and injected, supporting the Dependency Inversion Principle.
  */
+@Service("pdfReportFormatter")
 public class PDFReportFormatter implements ReportFormatterInterface {
     
     /**

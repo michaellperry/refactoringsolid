@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.model.SalesData;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -11,9 +12,13 @@ import java.util.stream.Collectors;
  * Responsible for formatting sales data into a readable report.
  * This class demonstrates the Single Responsibility Principle by focusing only on report formatting.
  *
- * It now implements ReportFormatterInterface as part of the Open/Closed Principle implementation,
+ * It implements ReportFormatterInterface as part of the Open/Closed Principle implementation,
  * allowing for different report formatting strategies without modifying existing code.
+ *
+ * The @Service annotation marks this as a Spring service component that can be
+ * automatically discovered and injected, supporting the Dependency Inversion Principle.
  */
+@Service
 public class ReportFormatter implements ReportFormatterInterface {
     
     /**

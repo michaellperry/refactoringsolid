@@ -1,12 +1,18 @@
 package com.example.demo.service;
 
+import org.springframework.stereotype.Service;
+
 /**
  * Responsible for sending reports via email.
  * This class demonstrates the Single Responsibility Principle by focusing only on email delivery.
- * 
- * It now implements ReportSenderInterface as part of the Open/Closed Principle implementation,
+ *
+ * It implements ReportSenderInterface as part of the Open/Closed Principle implementation,
  * allowing for different report delivery methods without modifying existing code.
+ *
+ * The @Service annotation marks this as a Spring service component that can be
+ * automatically discovered and injected, supporting the Dependency Inversion Principle.
  */
+@Service
 public class EmailReportSender implements ReportSenderInterface {
     
     /**

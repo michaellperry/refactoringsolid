@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -7,7 +9,11 @@ import java.time.format.DateTimeFormatter;
  * A file-based implementation of the ReportSenderInterface.
  * This class demonstrates the Open/Closed Principle by extending the system's functionality
  * without modifying existing code.
+ *
+ * The @Service annotation marks this as a Spring service component that can be
+ * automatically discovered and injected, supporting the Dependency Inversion Principle.
  */
+@Service("fileReportSender")
 public class FileReportSender implements ReportSenderInterface {
     
     /**

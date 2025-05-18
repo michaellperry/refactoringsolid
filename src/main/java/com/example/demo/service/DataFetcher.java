@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.model.SalesData;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -12,9 +13,13 @@ import java.util.Random;
  * Responsible for fetching or generating sales data.
  * This class demonstrates the Single Responsibility Principle by focusing only on data retrieval.
  *
- * It now implements DataFetcherInterface as part of the Open/Closed Principle implementation,
+ * It implements DataFetcherInterface as part of the Open/Closed Principle implementation,
  * allowing for different data fetching strategies without modifying existing code.
+ *
+ * The @Service annotation marks this as a Spring service component that can be
+ * automatically discovered and injected, supporting the Dependency Inversion Principle.
  */
+@Service
 public class DataFetcher implements DataFetcherInterface {
     
     /**
