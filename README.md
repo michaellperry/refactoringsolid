@@ -1,89 +1,116 @@
-# SOLID Principles Refactoring Example - Before
+# Report Service Architecture
 
-This project demonstrates a "before" example of code that violates SOLID principles. The diagram and documentation below illustrate the current architecture before refactoring.
+This document provides a visual representation of the Report Service architecture and its related classes, highlighting the implementation of SOLID principles.
 
 ## Class Diagram
 
 ```mermaid
 classDiagram
-    class SalesData {
-        -String productCategory
-        -double amount
-        -LocalDate date
-        +SalesData(String, double, LocalDate)
-        +getProductCategory() String
-        +getAmount() double
-        +getDate() LocalDate
-        +toString() String
-    }
-    
+    %% Core Service
     class ReportService {
+        -DataFetcherInterface dataFetcher
+        -ReportFormatterInterface reportFormatter
+        -ReportSenderInterface reportSender
         -List~SalesData~ salesData
-        +generateMonthlyReport(int, int, String) void
-        -fetchSalesData(int, int) void
-        -calculateTotalSales() double
-        -calculateGrowthPercentages() Map
-        -formatReportAsText(double, Map) String
-        -sendReportByEmail(String, String) void
+        +generateMonthlyReport(month, year, recipient)
+        -calculateTotalSales()
+        -calculateGrowthPercentages()
     }
     
-    ReportService --> "0..*" SalesData
+    %% Interfaces
+    class DataFetcherInterface {
+        <<interface>>
+        +fetchSalesData(month, year)
+    }
+    
+    class ReportFormatterInterface {
+        <<interface>>
+        +formatReport(salesData, totalSales, growthPercentages)
+    }
+    
+    class ReportSenderInterface {
+        <<interface>>
+        +sendReport(report, recipient)
+    }
+    
+    %% Relationships
+    ReportService --> DataFetcherInterface
+    ReportService --> ReportFormatterInterface
+    ReportService --> ReportSenderInterface
 ```
 
-## Current Architecture
 
-The current architecture consists of two main classes:
+```mermaid
+classDiagram
+    %% Implementations
+    class DataFetcher {
+        +fetchSalesData(month, year)
+    }
+    
+    class ReportFormatter {
+        +formatReport(salesData, totalSales, growthPercentages)
+    }
+    
+    class PDFReportFormatter {
+        +formatReport(salesData, totalSales, growthPercentages)
+    }
+    
+    class EmailReportSender {
+        +sendReport(report, recipient)
+    }
+    
+    class FileReportSender {
+        +sendReport(report, filePath)
+    }
+    
+    %% Relationships
+    DataFetcherInterface ()-- DataFetcher
+    ReportFormatterInterface ()-- ReportFormatter
+    ReportFormatterInterface ()-- PDFReportFormatter
+    ReportSenderInterface ()-- EmailReportSender
+    ReportSenderInterface ()-- FileReportSender
+```
 
-1. **SalesData**: A simple data model class that represents sales information for a specific product category on a specific date.
+## SOLID Principles Implementation
 
-2. **ReportService**: A service class that handles the entire process of generating and sending monthly sales reports.
-
-The `ReportService` class has a direct dependency on the `SalesData` class and manages a collection of `SalesData` objects. It orchestrates the entire reporting process from data fetching to email delivery.
-
-## SOLID Principles Violations
-
-This "before" example intentionally violates several SOLID principles:
+This architecture demonstrates the implementation of SOLID principles:
 
 ### Single Responsibility Principle (SRP)
 
-The `ReportService` class violates the SRP by handling multiple responsibilities:
-- **Data fetching**: The `fetchSalesData` method retrieves sales data
-- **Business logic calculations**: The `calculateTotalSales` and `calculateGrowthPercentages` methods perform business logic
-- **Report formatting**: The `formatReportAsText` method handles presentation logic
-- **Email sending**: The `sendReportByEmail` method handles delivery
-
-Each of these responsibilities could change for different reasons, making the class unstable and difficult to maintain.
+Each class has a single, well-defined responsibility:
+- `ReportService`: Orchestrates the report generation process
+- `DataFetcher`: Retrieves sales data
+- `ReportFormatter`/`PDFReportFormatter`: Format reports in different styles
+- `EmailReportSender`/`FileReportSender`: Send reports through different channels
+- `SalesData`: Represents sales information
 
 ### Open/Closed Principle (OCP)
 
-The current design violates the OCP because:
-- Adding new report formats (e.g., HTML, PDF) would require modifying the existing `ReportService` class
-- Adding new delivery methods (e.g., SMS, API) would require modifying the existing `ReportService` class
-- Changing the data source would require modifying the existing `ReportService` class
-
-### Interface Segregation Principle (ISP)
-
-While there are no interfaces in this example, the monolithic `ReportService` class forces clients to depend on methods they don't use. For example, a client that only needs to generate a report but not send it still has to use a class that includes email sending functionality.
+The system is open for extension but closed for modification:
+- New report formatters can be added without changing existing code
+- New report senders can be added without changing existing code
+- New data fetchers can be added without changing existing code
 
 ### Dependency Inversion Principle (DIP)
 
-The current design violates the DIP because:
-- High-level modules (report generation) depend directly on low-level modules (data fetching, email sending)
-- There are no abstractions to decouple these components
-- The `ReportService` class directly instantiates `SalesData` objects rather than depending on abstractions
+High-level modules depend on abstractions, not concrete implementations:
+- `ReportService` depends on interfaces (`DataFetcherInterface`, `ReportFormatterInterface`, `ReportSenderInterface`)
+- Both high-level modules and low-level modules depend on the same abstractions
+- Dependencies are injected through constructor injection
+- `ReportingConfig` centralizes dependency configuration
 
-## Issues with the Current Design
+### Contrast with Non-DIP Implementation
 
-The current architecture has several issues:
+The diagram includes `ReportServiceWithoutDIP` to illustrate the difference:
+- Directly depends on concrete implementations
+- Creates tight coupling between classes
+- Makes testing difficult as dependencies cannot be easily substituted
+- Changes to low-level modules may require changes to this class
 
-1. **Tight coupling**: The components for data fetching, processing, formatting, and delivery are tightly coupled within a single class.
+## Benefits of This Architecture
 
-2. **Poor testability**: It's difficult to test individual components in isolation. For example, testing the report formatting logic requires setting up data fetching.
-
-3. **Limited reusability**: Components cannot be easily reused in other contexts. For example, the report formatting logic cannot be used without bringing in the data fetching and email sending logic.
-
-4. **Difficult to extend**: Adding new features or modifying existing ones requires changing the `ReportService` class, which increases the risk of introducing bugs.
-
-5. **Violates separation of concerns**: The class mixes different levels of abstraction and different areas of functionality.
-
-This "before" example serves as a starting point for refactoring to better adhere to SOLID principles.
+1. **Flexibility**: Implementations can be easily swapped by changing configuration
+2. **Testability**: Dependencies can be mocked for unit testing
+3. **Maintainability**: Dependencies are managed in one place
+4. **Loose Coupling**: High-level modules depend on abstractions, not implementations
+5. **Extensibility**: New implementations can be added without modifying existing code
